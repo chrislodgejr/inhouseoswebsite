@@ -1,7 +1,13 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://inhouseos.com";
+function getSiteUrl() {
+  const rawSiteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://inhouseos.com").trim();
+  const normalizedSiteUrl = /^https?:\/\//i.test(rawSiteUrl) ? rawSiteUrl : `https://${rawSiteUrl}`;
+  return normalizedSiteUrl.replace(/\/+$/, "");
+}
+
+const siteUrl = getSiteUrl();
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
