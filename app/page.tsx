@@ -1,15 +1,19 @@
+// @ts-nocheck
 "use client";
 
-import { FormEvent, useState } from "react";
-import { motion } from "framer-motion";
+import React, { FormEvent, useMemo, useState } from "react";
+import { AnimatePresence, motion, useMotionValue, useSpring, useTransform } from "framer-motion";
+
+const cx = (...classes: string[]) => classes.filter(Boolean).join(" ");
 
 function IconBase({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{children}</svg>;
 }
 const ArrowRight = (props: { className?: string }) => <IconBase {...props}><path d="M5 12h14" /><path d="m13 5 7 7-7 7" /></IconBase>;
-const Building2 = (props: { className?: string }) => <IconBase {...props}><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18" /><path d="M10 6h4" /><path d="M10 10h4" /><path d="M10 14h4" /><path d="M10 18h4" /></IconBase>;
+const Building2 = (props: { className?: string }) => <IconBase {...props}><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18" /><path d="M6 12H4a2 2 0 0 0-2 2v8" /><path d="M18 9h2a2 2 0 0 1 2 2v11" /><path d="M10 6h4" /><path d="M10 10h4" /><path d="M10 14h4" /><path d="M10 18h4" /></IconBase>;
 const CalendarDays = (props: { className?: string }) => <IconBase {...props}><path d="M8 2v4" /><path d="M16 2v4" /><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M3 10h18" /></IconBase>;
 const CheckCircle2 = (props: { className?: string }) => <IconBase {...props}><circle cx="12" cy="12" r="10" /><path d="m9 12 2 2 4-4" /></IconBase>;
+const ChevronRight = (props: { className?: string }) => <IconBase {...props}><path d="m9 18 6-6-6-6" /></IconBase>;
 const ClipboardCheck = (props: { className?: string }) => <IconBase {...props}><rect x="8" y="2" width="8" height="4" rx="1" /><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" /><path d="m9 14 2 2 4-5" /></IconBase>;
 const DollarSign = (props: { className?: string }) => <IconBase {...props}><path d="M12 2v20" /><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6" /></IconBase>;
 const Gauge = (props: { className?: string }) => <IconBase {...props}><path d="M12 14l4-4" /><path d="M3.34 19a10 10 0 1 1 17.32 0" /></IconBase>;
@@ -18,189 +22,113 @@ const Menu = (props: { className?: string }) => <IconBase {...props}><path d="M4
 const PackageIcon = (props: { className?: string }) => <IconBase {...props}><path d="m21 8-9-5-9 5 9 5 9-5Z" /><path d="M3 8v8l9 5 9-5V8" /><path d="M12 13v8" /></IconBase>;
 const Play = (props: { className?: string }) => <IconBase {...props}><path d="m8 5 11 7-11 7V5Z" /></IconBase>;
 const ShieldCheck = (props: { className?: string }) => <IconBase {...props}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" /><path d="m9 12 2 2 4-4" /></IconBase>;
-const Sparkles = (props: { className?: string }) => <IconBase {...props}><path d="m12 3 1.7 4.3L18 9l-4.3 1.7L12 15l-1.7-4.3L6 9l4.3-1.7L12 3Z" /><path d="m19 14 .8 2.2L22 17l-2.2.8L19 20l-.8-2.2L16 17l2.2-.8L19 14Z" /></IconBase>;
-const Users = (props: { className?: string }) => <IconBase {...props}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /></IconBase>;
+const Sparkles = (props: { className?: string }) => <IconBase {...props}><path d="m12 3 1.7 4.3L18 9l-4.3 1.7L12 15l-1.7-4.3L6 9l4.3-1.7L12 3Z" /><path d="m19 14 .8 2.2L22 17l-2.2.8L19 20l-.8-2.2L16 17l2.2-.8L19 14Z" /><path d="m5 14 .8 2.2L8 17l-2.2.8L5 20l-.8-2.2L2 17l2.2-.8L5 14Z" /></IconBase>;
+const Users = (props: { className?: string }) => <IconBase {...props}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></IconBase>;
 const X = (props: { className?: string }) => <IconBase {...props}><path d="M18 6 6 18" /><path d="m6 6 12 12" /></IconBase>;
 const Zap = (props: { className?: string }) => <IconBase {...props}><path d="M13 2 3 14h8l-1 8 11-14h-8l0-6Z" /></IconBase>;
-const TrashIcon = (props: { className?: string }) => <IconBase {...props}><path d="M3 6h18" /><path d="M8 6V4h8v2" /><path d="M19 6l-1 14H6L5 6" /></IconBase>;
+const TrashIcon = (props: { className?: string }) => <IconBase {...props}><path d="M3 6h18" /><path d="M8 6V4h8v2" /><path d="M19 6l-1 14H6L5 6" /><path d="M10 11v5" /><path d="M14 11v5" /></IconBase>;
 const CartIcon = (props: { className?: string }) => <IconBase {...props}><circle cx="9" cy="20" r="1" /><circle cx="17" cy="20" r="1" /><path d="M3 4h2l2.2 10.4a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 2-1.6L20 8H6" /></IconBase>;
 
-const modules = [
-  { tag: "Revenue", icon: DollarSign, title: "Sales Command", copy: "Food, beverage, discounts, refunds, comps, and net sales entered by operating day so the P&L starts from clean revenue." },
-  { tag: "COGS", icon: CartIcon, title: "Purchase Command", copy: "Invoice capture, vendor spend, category cost, and review status for operators who need control before accounting closes." },
-  { tag: "Counts", icon: PackageIcon, title: "Inventory Command", copy: "Mobile count flow, storage areas, category views, low-stock indicators, and order-list readiness for kitchen teams." },
-  { tag: "Loss", icon: TrashIcon, title: "Waste Command", copy: "Log spoilage, over-prep, quality issues, and estimated cost so waste becomes a margin-management signal." },
-  { tag: "People", icon: Users, title: "Labor Command", copy: "Worked days grouped by employee, location, hours, role, and payroll readiness without duplicated summary rows." },
-  { tag: "Payroll", icon: ClipboardCheck, title: "Payroll Review", copy: "Review employee labor, selected date ranges, and unsubmitted items before locking a payroll package." },
-  { tag: "P&L", icon: LineChart, title: "Live P&L", copy: "Sales, purchases, labor, waste, and operating entries roll into a real-time view of prime cost, margin, and net profit." },
-  { tag: "AI", icon: Sparkles, title: "AI owner briefs", copy: "Manager and owner readouts summarize margin pressure, wins, risks, and recommended actions from visible operating cards." },
-];
-
-const pricing = [
-  { title: "Operator", price: "Coming soon", copy: "For single-location restaurants preparing for structured daily operating control.", features: ["Sales, purchasing, waste, inventory, and labor modules", "Live P&L dashboard", "AI manager and owner briefs", "Inquiry and onboarding workflow"] },
-  { title: "Restaurant Group", price: "Coming soon", copy: "For multi-location groups that need location comparison and clean close workflows.", features: ["All Operator modules", "All-location performance views", "Payroll review workspace", "Role-based operating process"] },
-  { title: "Launching Soon", price: "Coming soon", copy: "For larger food service teams that need deeper integrations and implementation support.", features: ["POS, accounting, payroll, and vendor connection planning", "Custom operating day setup", "Multi-concept reporting", "Implementation roadmap"] },
-];
-
-function Logo() {
-  return (
-    <a href="#top" className="logoLink" aria-label="InHouseOS home">
-      <img src="/logo.png" className="logoImage" alt="InHouseOS logo" />
-      <span className="logoText"><span className="logoWord">InHouseOS</span><span className="logoSub">Restaurant back office OS</span></span>
-    </a>
-  );
+function Logo({ showText = true, className = "h-10 w-10" }) {
+  return <div className="flex items-center gap-3"><img src="/logo.png" alt="InHouseOS logo" className={cx("rounded-2xl object-contain shadow-lg shadow-cyan-500/20 ring-1 ring-white/10", className)} />{showText && <span className="text-sm font-black tracking-tight text-white sm:text-base">InHouseOS</span>}</div>;
 }
 
-function Header() {
+function Nav() {
   const [open, setOpen] = useState(false);
-  const links = [
-    ["Platform", "#platform", ""],
-    ["Modules", "#modules", "modulesButton"],
-    ["AI Briefs", "#ai", ""],
-    ["Pricing", "#pricing", ""],
-    ["Contact", "#contact", ""],
-    ["Admin", "/admin", ""],
-  ];
-  return (
-    <header className="header">
-      <div className="container headerInner">
-        <Logo />
-        <nav className="nav" aria-label="Primary navigation">
-          {links.map(([label, href, className]) => <a key={label} href={href} className={`navLink ${className}`}>{label}</a>)}
-        </nav>
-        <div className="headerActions">
-          <a href="#contact" className="btn btnPrimary btnTiny">Request access</a>
-          <button className="btn btnTiny mobileToggle" onClick={() => setOpen((value) => !value)} aria-label="Toggle menu">
-            {open ? <X className="icon" /> : <Menu className="icon" />}
-          </button>
-        </div>
-      </div>
-      {open && <div className="container mobileMenu">{links.map(([label, href, className]) => <a key={label} href={href} onClick={() => setOpen(false)} className={`navLink ${className}`}>{label}</a>)}</div>}
-    </header>
-  );
+  const links = [["Platform", "#platform"], ["Modules", "#modules"], ["AI", "#ai"], ["Workflow", "#workflow"], ["Pricing", "#pricing"]];
+  return <header className="fixed left-0 right-0 top-0 z-50 px-4 py-4 sm:px-6"><motion.nav initial={{ opacity: 0, y: -18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }} className="mx-auto flex max-w-7xl items-center justify-between rounded-full border border-white/10 bg-slate-950/60 px-4 py-3 shadow-2xl shadow-cyan-950/20 backdrop-blur-2xl"><a href="#top"><Logo /></a><div className="hidden items-center gap-1 md:flex">{links.map(([label, href]) => <a key={label} href={href} className="rounded-full px-4 py-2 text-sm font-medium text-slate-300 transition hover:bg-white/10 hover:text-white">{label}</a>)}</div><div className="hidden items-center gap-2 md:flex"><a href="/admin" className="rounded-full px-4 py-2 text-sm font-semibold text-slate-300 transition hover:text-white">Admin</a><a href="#contact" className="rounded-full bg-white px-4 py-2 text-sm font-bold text-slate-950 transition hover:bg-cyan-100">Book demo</a></div><button onClick={() => setOpen((v) => !v)} className="grid h-10 w-10 place-items-center rounded-full border border-white/10 text-white md:hidden" aria-label="Toggle navigation">{open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}</button></motion.nav><AnimatePresence>{open && <motion.div initial={{ opacity: 0, y: -10, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -10, scale: 0.98 }} className="mx-auto mt-3 max-w-7xl rounded-3xl border border-white/10 bg-slate-950/90 p-4 shadow-2xl backdrop-blur-2xl md:hidden"><div className="grid gap-2">{links.map(([label, href]) => <a key={label} onClick={() => setOpen(false)} href={href} className="rounded-2xl px-4 py-3 text-sm font-semibold text-slate-200 hover:bg-white/10">{label}</a>)}<a href="/admin" onClick={() => setOpen(false)} className="rounded-2xl px-4 py-3 text-sm font-semibold text-slate-200 hover:bg-white/10">Admin</a><a href="#contact" onClick={() => setOpen(false)} className="rounded-2xl bg-white px-4 py-3 text-center text-sm font-black text-slate-950">Book demo</a></div></motion.div>}</AnimatePresence></header>;
 }
 
-function HeroMock() {
-  return (
-    <div className="browserStage" aria-label="Animated InHouseOS app preview">
-      <motion.div className="appMock" initial={{ opacity: 0, y: 50, rotateX: 10 }} animate={{ opacity: 1, y: 0, rotateX: 7 }} transition={{ duration: 0.8 }}>
-        <div className="appTop"><div className="dots"><span className="dot" /><span className="dot" /><span className="dot" /></div><span className="miniPill green">Live command center</span></div>
-        <div className="appBody">
-          <aside className="sideRail">
-            <div className="sideCard"><div className="sideTitle">InHouseOS</div><div className="sideSmall">Ember Row Hospitality</div></div>
-            {['Command Center','Live P&L','Sales','Purchases','Inventory','Waste','Labor'].map((item, index) => <div key={item} className={`sideItem ${index === 1 ? 'active' : ''}`}><LineChart className="icon" />{item}</div>)}
-          </aside>
-          <main className="screen">
-            <section className="commandHero">
-              <div>
-                <div className="miniPillRow"><span className="miniPill green">Realtime P&L</span><span className="miniPill">All locations</span><span className="miniPill">Month to date</span></div>
-                <h2>Margin leaks visible before close.</h2>
-                <p>Sales, purchasing, inventory, waste, vendors, labor, and expenses connected in one operating view.</p>
-              </div>
-              <div className="pulseCard"><div className="pulseLabel">Today&apos;s close</div><div className="pulseMetric">63.3%</div><div className="progress"><span /></div><p className="floatCopy">Prime cost pressure detected across prep, vendor spend, and scheduling.</p></div>
-            </section>
-            <div className="metricGrid">
-              <div className="metricCard"><div className="metricLabel">Net Sales</div><div className="metricValue">$128,450</div></div>
-              <div className="metricCard"><div className="metricLabel">Prime Cost</div><div className="metricValue">63.3%</div></div>
-              <div className="metricCard"><div className="metricLabel">Est. Net Profit</div><div className="metricValue">$44,486</div></div>
-              <div className="metricCard"><div className="metricLabel">Margin Impact</div><div className="metricValue">-$2,680</div></div>
-            </div>
-            <div className="workflow">
-              {['Vendors','Purchases','Inventory','Waste','Live P&L'].map((item, index) => <div key={item} className={`workflowStep ${index === 4 ? 'active' : ''}`}><span>{index + 1}</span><strong>{item}</strong><span>Operating workflow</span></div>)}
-            </div>
-          </main>
-        </div>
-      </motion.div>
-      <motion.div className="floatCard floatSales" initial={{ opacity: 0, x: 80 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.45 }}>
-        <div className="floatCardTop"><span>Sales card</span><DollarSign className="icon" /></div><div className="floatNumber">$77,120</div><div className="floatCopy">Daily sales by category, location, and operating date.</div>
-      </motion.div>
-      <motion.div className="floatCard floatLabor" initial={{ opacity: 0, x: -80 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.58 }}>
-        <div className="floatCardTop"><span>Labor card</span><Users className="icon" /></div><div className="floatNumber">735 hrs</div><div className="floatCopy">Worked days grouped for cleaner payroll review.</div>
-      </motion.div>
-      <motion.div className="floatCard floatAi" initial={{ opacity: 0, y: 80 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.72 }}>
-        <div className="floatCardTop"><span>AI owner brief</span><Sparkles className="icon" /></div><div className="floatNumber">4 actions</div><div className="floatCopy">Wins, risks, and next steps from the visible P&L cards.</div>
-      </motion.div>
-    </div>
-  );
+function MagneticButton({ children, variant = "primary", className = "" }) {
+  const x = useMotionValue(0), y = useMotionValue(0);
+  const springX = useSpring(x, { stiffness: 180, damping: 15 }), springY = useSpring(y, { stiffness: 180, damping: 15 });
+  return <motion.button type="button" onMouseMove={(e) => { const r = e.currentTarget.getBoundingClientRect(); x.set((e.clientX - r.left - r.width / 2) * 0.18); y.set((e.clientY - r.top - r.height / 2) * 0.18); }} onMouseLeave={() => { x.set(0); y.set(0); }} style={{ x: springX, y: springY }} whileTap={{ scale: 0.97 }} className={cx("group relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-full px-6 py-3 text-sm font-semibold transition-all", variant === "primary" ? "bg-white text-slate-950 shadow-[0_20px_80px_rgba(255,255,255,0.22)] hover:bg-slate-100" : "border border-white/15 bg-white/5 text-white backdrop-blur-xl hover:bg-white/10", className)}>{variant === "primary" && <motion.span aria-hidden className="absolute inset-y-0 -left-24 w-24 rotate-12 bg-gradient-to-r from-transparent via-cyan-200/70 to-transparent" animate={{ left: ["-6rem", "140%"] }} transition={{ duration: 2.4, repeat: Infinity, repeatDelay: 1.8, ease: "easeInOut" }} />}<span className="relative z-10">{children}</span><ArrowRight className="relative z-10 h-4 w-4 transition-transform group-hover:translate-x-1" /></motion.button>;
+}
+
+function AuroraField() {
+  return <div className="pointer-events-none absolute inset-0 overflow-hidden"><motion.div className="absolute -top-48 left-1/2 h-[42rem] w-[42rem] -translate-x-1/2 rounded-full bg-cyan-500/20 blur-3xl" animate={{ scale: [1, 1.15, 1], x: [-40, 50, -40], opacity: [0.55, 0.85, 0.55] }} transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }} /><motion.div className="absolute right-[-10%] top-[18%] h-[34rem] w-[34rem] rounded-full bg-violet-600/20 blur-3xl" animate={{ scale: [1, 0.82, 1.08, 1], y: [0, 80, -40, 0] }} transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }} /><motion.div className="absolute bottom-[-20%] left-[-10%] h-[36rem] w-[36rem] rounded-full bg-blue-600/20 blur-3xl" animate={{ scale: [1, 1.25, 0.9, 1], x: [0, 90, -30, 0] }} transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }} /><div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:64px_64px] [mask-image:radial-gradient(ellipse_at_top,black,transparent_70%)]" /></div>;
+}
+
+function FloatingCard({ type, title, meta, value, status, icon: Icon, delay = 0, className = "" }) {
+  const tone = type === "sales" ? "from-emerald-300/20 via-cyan-300/10 to-transparent" : type === "ai" ? "from-violet-300/20 via-cyan-300/10 to-transparent" : "from-amber-300/20 via-orange-300/10 to-transparent";
+  const pill = type === "sales" ? "bg-emerald-300/15 text-emerald-100 ring-emerald-300/25" : type === "ai" ? "bg-violet-300/15 text-violet-100 ring-violet-300/25" : "bg-amber-300/15 text-amber-100 ring-amber-300/25";
+  return <motion.div initial={{ opacity: 0, z: -180, y: 70, rotateX: 18, rotateY: -10 }} animate={{ opacity: 1, z: 0, y: [0, -18, 0], rotateX: [8, 2, 8], rotateY: [-8, 4, -8] }} transition={{ opacity: { delay, duration: 0.8 }, y: { delay, duration: 5, repeat: Infinity, ease: "easeInOut" }, rotateX: { delay, duration: 5, repeat: Infinity, ease: "easeInOut" }, rotateY: { delay, duration: 5, repeat: Infinity, ease: "easeInOut" } }} whileHover={{ scale: 1.12, z: 140, rotateX: 0, rotateY: 0, y: -26 }} className={cx("absolute w-64 rounded-3xl border border-white/15 bg-slate-900/80 p-4 text-left shadow-[0_30px_120px_rgba(0,0,0,0.5)] backdrop-blur-2xl [transform-style:preserve-3d]", className)}><div className={cx("absolute inset-0 rounded-3xl bg-gradient-to-br", tone)} /><div className="relative"><div className="mb-4 flex items-center justify-between"><div className="grid h-10 w-10 place-items-center rounded-2xl bg-white/10 ring-1 ring-white/15"><Icon className="h-5 w-5 text-white" /></div><span className={cx("rounded-full px-2.5 py-1 text-[11px] font-bold ring-1", pill)}>{status}</span></div><p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">{meta}</p><h3 className="mt-1 text-base font-black text-white">{title}</h3><div className="mt-4 flex items-end justify-between"><p className="text-2xl font-black tracking-tight text-white">{value}</p><ChevronRight className="h-5 w-5 text-slate-400" /></div></div></motion.div>;
+}
+
+function ProductStage() {
+  const mouseX = useMotionValue(0), mouseY = useMotionValue(0);
+  const rotateY = useTransform(mouseX, [-0.5, 0.5], [-12, 12]);
+  const rotateX = useTransform(mouseY, [-0.5, 0.5], [9, -9]);
+  const pipeline = [{ name: "Sales", amount: "$128k", active: true }, { name: "Purchases", amount: "$42k", active: true }, { name: "Labor", amount: "$31k", active: false }];
+  return <div className="relative mx-auto mt-16 h-[650px] w-full max-w-6xl [perspective:1300px] lg:mt-20" onMouseMove={(e) => { const r = e.currentTarget.getBoundingClientRect(); mouseX.set((e.clientX - r.left) / r.width - 0.5); mouseY.set((e.clientY - r.top) / r.height - 0.5); }} onMouseLeave={() => { mouseX.set(0); mouseY.set(0); }}><motion.div style={{ rotateX, rotateY }} className="absolute left-1/2 top-12 h-[470px] w-[92%] max-w-5xl -translate-x-1/2 rounded-[2rem] border border-white/15 bg-slate-950/80 p-3 shadow-[0_50px_160px_rgba(0,0,0,0.62)] backdrop-blur-2xl [transform-style:preserve-3d] sm:p-4 lg:rounded-[2.5rem]"><div className="absolute -inset-px rounded-[2rem] bg-gradient-to-br from-cyan-300/30 via-white/5 to-violet-400/30 opacity-80 lg:rounded-[2.5rem]" /><div className="relative h-full overflow-hidden rounded-[1.6rem] border border-white/10 bg-[#07111f] lg:rounded-[2rem]"><div className="flex h-14 items-center justify-between border-b border-white/10 bg-white/[0.035] px-4"><div className="flex items-center gap-2"><span className="h-3 w-3 rounded-full bg-red-400/80" /><span className="h-3 w-3 rounded-full bg-yellow-300/80" /><span className="h-3 w-3 rounded-full bg-emerald-400/80" /></div><div className="hidden rounded-full border border-white/10 bg-white/[0.04] px-4 py-1.5 text-xs font-semibold text-slate-300 sm:block">InHouseOS / Restaurant Command Center</div><div className="flex items-center gap-2 text-xs font-bold text-cyan-100"><Sparkles className="h-4 w-4" /> Live</div></div><div className="grid h-[calc(100%-3.5rem)] grid-cols-12"><aside className="hidden border-r border-white/10 bg-black/15 p-4 md:col-span-3 md:block lg:col-span-2"><div className="mb-6 flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-3"><div className="grid h-9 w-9 place-items-center rounded-xl bg-cyan-400/15 text-cyan-100"><Building2 className="h-4 w-4" /></div><div><p className="text-xs font-bold text-white">Ember Table Group</p><p className="text-[11px] text-slate-500">Back office</p></div></div>{[[Gauge, "Command", true], [DollarSign, "Live P&L", false], [CartIcon, "Purchases", false], [PackageIcon, "Inventory", false], [Users, "Labor", false]].map(([Icon, label, active]) => <div key={label} className={cx("mb-2 flex items-center gap-3 rounded-2xl px-3 py-2.5 text-xs font-bold", active ? "bg-cyan-400/15 text-cyan-50 ring-1 ring-cyan-300/20" : "text-slate-500")}><Icon className="h-4 w-4" /> {label}</div>)}</aside><main className="col-span-12 p-4 md:col-span-9 lg:col-span-10 lg:p-6"><div className="mb-5 grid gap-4 lg:grid-cols-4">{[["Net sales", "$128k", "+8.4%", DollarSign], ["Prime cost", "63.3%", "Watch", ShieldCheck], ["Net profit", "$4,990", "Live", LineChart], ["Margin impact", "-$2,680", "Alert", Zap]].map(([label, value, tag, Icon], index) => <motion.div key={label} initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 + index * 0.08, duration: 0.6 }} className="rounded-3xl border border-white/10 bg-white/[0.045] p-4"><div className="mb-5 flex items-center justify-between"><Icon className="h-4 w-4 text-cyan-200" /><span className="rounded-full bg-white/10 px-2 py-1 text-[10px] font-black text-slate-300">{tag}</span></div><p className="text-[11px] font-bold uppercase tracking-wider text-slate-500">{label}</p><p className="mt-1 text-2xl font-black text-white">{value}</p></motion.div>)}</div><div className="grid gap-4 lg:grid-cols-12"><section className="rounded-3xl border border-white/10 bg-white/[0.04] p-4 lg:col-span-7"><div className="mb-4 flex items-center justify-between"><div><h3 className="text-sm font-black text-white">Live P&L Pipeline</h3><p className="text-xs text-slate-500">Operating entries flow into margin visibility.</p></div><span className="rounded-full bg-emerald-300/10 px-3 py-1 text-xs font-black text-emerald-100">Realtime</span></div><div className="grid gap-3 sm:grid-cols-3">{pipeline.map((item, index) => <motion.div key={item.name} className="rounded-3xl border border-white/10 bg-slate-950/55 p-4" animate={{ y: item.active ? [0, -8, 0] : 0 }} transition={{ delay: index * 0.2, duration: 3.6, repeat: Infinity, ease: "easeInOut" }}><div className="mb-8 h-1.5 overflow-hidden rounded-full bg-white/10"><motion.div className="h-full rounded-full bg-gradient-to-r from-cyan-300 to-emerald-300" initial={{ width: 0 }} animate={{ width: item.active ? "82%" : "48%" }} transition={{ delay: 0.9 + index * 0.15, duration: 1.2 }} /></div><p className="text-xs font-bold text-slate-400">{item.name}</p><p className="mt-1 text-xl font-black text-white">{item.amount}</p></motion.div>)}</div></section><section className="rounded-3xl border border-white/10 bg-white/[0.04] p-4 lg:col-span-5"><div className="mb-4 flex items-center justify-between"><h3 className="text-sm font-black text-white">Manager Brief</h3><Sparkles className="h-4 w-4 text-amber-200" /></div><div className="space-y-3">{[["Food cost", "Above target", "31%"], ["Labor", "Needs review", "26%"], ["Waste", "Top reason: spoilage", "$428"]].map(([label, note, value], index) => <motion.div key={label} initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.75 + index * 0.12, duration: 0.55 }} className="rounded-2xl border border-white/10 bg-slate-950/60 p-3"><div className="mb-2 flex items-center justify-between text-xs"><span className="font-black text-white">{label}</span><span className="font-bold text-slate-400">{value}</span></div><p className="text-xs text-slate-500">{note}</p></motion.div>)}</div></section></div></main></div></div></motion.div><FloatingCard type="sales" title="Daily sales entry" meta="Sales card" value="$17,430" status="Posted" icon={DollarSign} delay={0.45} className="left-[2%] top-[7%] hidden md:block" /><FloatingCard type="labor" title="Labor review" meta="Payroll card" value="735 hrs" status="Ready" icon={Users} delay={0.7} className="right-[1%] top-[16%] hidden md:block" /><FloatingCard type="sales" title="Vendor invoice" meta="Purchase card" value="$2,344" status="Approved" icon={CartIcon} delay={0.95} className="bottom-[6%] left-[11%] hidden lg:block" /><FloatingCard type="ai" title="Owner Brief" meta="AI card" value="Ready" status="Generated" icon={Sparkles} delay={1.1} className="bottom-[2%] right-[10%] hidden lg:block" /></div>;
 }
 
 function Hero() {
-  return (
-    <section id="top" className="hero">
-      <div className="container heroGrid">
-        <motion.div className="heroCopy" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }}>
-          <div className="eyebrow"><span className="eyebrowDot" />Restaurant back office OS</div>
-          <h1>Operate food service margins <span className="gradientText">before month-end.</span></h1>
-          <p className="heroLead">InHouseOS turns sales, purchasing, inventory, waste, labor, payroll review, vendors, and AI briefs into one command center for restaurants and food service companies.</p>
-          <div className="heroCtas"><a href="#contact" className="btn btnPrimary">Request early access <ArrowRight className="icon" /></a><a href="#platform" className="btn"><Play className="icon" /> View platform flow</a></div>
-          <div className="trustLine"><span className="trustPill">Built for operators</span><span className="trustPill">Designed for managers</span><span className="trustPill">Readable for owners</span></div>
-        </motion.div>
-        <HeroMock />
-      </div>
-    </section>
-  );
+  return <section id="top" className="relative min-h-screen overflow-hidden bg-slate-950 pt-36 text-white sm:pt-40"><AuroraField /><div className="relative mx-auto max-w-7xl px-4 sm:px-6"><motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }} className="mx-auto max-w-4xl text-center"><div className="mx-auto mb-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-bold uppercase tracking-[0.22em] text-cyan-100 backdrop-blur-xl"><Sparkles className="h-4 w-4" /> Restaurant back-office OS</div><h1 className="text-balance text-5xl font-black tracking-[-0.06em] text-white sm:text-7xl lg:text-8xl">Realtime restaurant margin control from sales to payroll.</h1><p className="mx-auto mt-6 max-w-2xl text-pretty text-base leading-8 text-slate-300 sm:text-lg">InHouseOS connects sales, purchases, inventory, waste, vendors, labor, payroll review, and Live P&L into one operating layer for restaurant groups and food-service companies.</p><div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row"><a href="#contact"><MagneticButton>Book a product walkthrough</MagneticButton></a><a href="#modules"><MagneticButton variant="secondary"><Play className="h-4 w-4" /> See the modules</MagneticButton></a></div></motion.div><ProductStage /></div></section>;
+}
+
+function SectionLabel({ eyebrow, title, description, align = "center" }) {
+  return <div className={cx("mx-auto max-w-3xl", align === "center" ? "text-center" : "text-left")}><p className="text-xs font-black uppercase tracking-[0.25em] text-cyan-300">{eyebrow}</p><h2 className="mt-3 text-4xl font-black tracking-[-0.04em] text-white sm:text-5xl">{title}</h2>{description && <p className="mt-5 text-base leading-8 text-slate-400">{description}</p>}</div>;
+}
+
+function FeatureCard({ icon: Icon, title, description, index }) {
+  return <motion.div initial={{ opacity: 0, y: 28 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-80px" }} transition={{ delay: index * 0.08, duration: 0.65, ease: [0.16, 1, 0.3, 1] }} whileHover={{ y: -10, scale: 1.02 }} className="group relative overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.045] p-6 shadow-2xl shadow-black/20 backdrop-blur-xl"><div className="absolute inset-0 bg-gradient-to-br from-cyan-300/10 via-transparent to-violet-400/10 opacity-0 transition-opacity duration-500 group-hover:opacity-100" /><div className="relative"><div className="mb-8 grid h-12 w-12 place-items-center rounded-2xl bg-white/10 ring-1 ring-white/15 transition group-hover:bg-cyan-300/15"><Icon className="h-6 w-6 text-cyan-100" /></div><h3 className="text-xl font-black text-white">{title}</h3><p className="mt-3 text-sm leading-7 text-slate-400">{description}</p></div></motion.div>;
 }
 
 function Platform() {
-  return (
-    <section id="platform" className="section">
-      <div className="container">
-        <div className="headingGrid"><div><div className="eyebrow"><span className="eyebrowDot" />Operating layer</div><h2 className="sectionTitle">A daily workflow that becomes the P&L.</h2></div><p className="sectionCopy">Most restaurant software records one slice of the operation. InHouseOS is built around the back office workflow itself: what managers enter, what owners need to know, and what finance needs clean before close.</p></div>
-        <div className="showcase">
-          <div className="showcaseGrid">
-            <div className="panel">
-              <div className="panelHeader"><div className="panelTitle">All-location performance</div><span className="miniPill">Week to date</span></div>
-              <div className="tableWrap"><table className="table"><thead><tr><th>Location</th><th>Net Sales</th><th>Food Cost</th><th>Labor</th><th>Prime</th><th>Margin</th></tr></thead><tbody>
-                {[['Cedar Hall','$50,000','30%','24%','54%','4%'],['Bluebird Market','$64,000','31%','25%','56%','5%'],['Northline Commissary','$78,000','32%','26%','58%','6%']].map((row) => <tr key={row[0]}>{row.map((cell, i) => <td key={cell} className={i > 3 ? (i === 4 ? 'warn' : 'good') : ''}>{cell}</td>)}</tr>)}
-              </tbody></table></div>
-            </div>
-            <div className="aiBrief"><div className="eyebrow"><span className="eyebrowDot" />AI Manager & Owner Brief</div><h3>Live P&L owner readout</h3><p>Estimated net profit is holding, but prime cost is above target. The largest current pressure is vendor spend variance combined with labor pacing at two locations.</p><ul><li>Investigate produce and protein categories.</li><li>Review schedule pacing before the weekend.</li><li>Confirm waste logs are complete before close.</li></ul><a href="#ai" className="btn btnPrimary">Explore AI briefs</a></div>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
+  const features = [
+    { icon: DollarSign, title: "Live P&L from real entries", description: "Daily sales, invoices, labor, and waste feed margin visibility without waiting on month-end accounting." },
+    { icon: CartIcon, title: "Purchasing and vendor control", description: "Track invoices, suppliers, categories, and review status before spend becomes invisible." },
+    { icon: PackageIcon, title: "Inventory that explains food cost", description: "Count stock by category, storage area, and location so managers can catch variance earlier." },
+    { icon: TrashIcon, title: "Waste tied to margin impact", description: "Log spoilage, over-prep, quality issues, and controllable loss by item and location." },
+    { icon: Users, title: "Labor and payroll review", description: "Review worked days, hours, payroll totals, and submission readiness from one back-office workflow." },
+    { icon: Sparkles, title: "AI manager and owner briefs", description: "Generate plain-English readouts on margin pressure, wins, risks, and recommended actions for managers and owners." },
+  ];
+  return <section id="platform" className="relative overflow-hidden bg-slate-950 py-28 text-white"><div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(34,211,238,0.13),transparent_34%)]" /><div className="relative mx-auto max-w-7xl px-4 sm:px-6"><SectionLabel eyebrow="Platform" title="One back office for the numbers restaurants manage every day." description="InHouseOS is built for operators who need sales, food cost, labor, purchasing, inventory, waste, and payroll review in the same live system." /><div className="mt-14 grid gap-4 md:grid-cols-2 lg:grid-cols-3">{features.map((feature, index) => <FeatureCard key={feature.title} {...feature} index={index} />)}</div></div></section>;
 }
 
 function Modules() {
-  return (
-    <section id="modules" className="section">
-      <div className="container">
-        <div className="headingGrid"><div><div className="eyebrow"><span className="eyebrowDot" />Modules</div><h2 className="sectionTitle">Every back office card has a job.</h2></div><p className="sectionCopy">Cards sit flat in the workflow until an operator needs them. Hover a module to see the interaction lift forward.</p></div>
-        <div className="modulesGrid">{modules.map(({ tag, icon: Icon, title, copy }) => <article key={title} className="popCard"><span className="popTag">{tag}</span><span className="popIcon"><Icon className="iconLg" /></span><h3>{title}</h3><p>{copy}</p></article>)}</div>
-      </div>
-    </section>
-  );
+  const [active, setActive] = useState("pnl");
+  const modules = {
+    pnl: { label: "Live P&L", icon: LineChart, title: "Profit pulse", copy: "See sales, prime cost, gross profit, fixed expense, estimated net profit, and margin impact before the period closes.", items: ["Prime cost pressure", "Location performance", "AI owner brief", "Margin alerts"] },
+    purchases: { label: "Purchases", icon: CartIcon, title: "Invoice control", copy: "Enter vendor invoices, track spend by category, and keep COGS current before accounting catches up.", items: ["Vendor spend", "Invoice review", "Tax and fees", "Purchasing readiness"] },
+    inventory: { label: "Inventory", icon: PackageIcon, title: "Count flow", copy: "Run mobile inventory counts by storage area, category, and location with par-level readiness for ordering.", items: ["Counted value", "Low stock", "Storage areas", "Suggested order"] },
+    labor: { label: "Labor", icon: Users, title: "Payroll readiness", copy: "Group labor by employee, location, and date range so managers can review worked days without duplicated rows.", items: ["Worked days", "Hours", "Payroll total", "Submission status"] },
+  };
+  const current = modules[active];
+  const ActiveIcon = current.icon;
+  return <section id="modules" className="relative overflow-hidden bg-[#07111f] py-28 text-white"><div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(15,23,42,0),rgba(15,23,42,0.88))]" /><div className="relative mx-auto max-w-7xl px-4 sm:px-6"><div className="grid items-center gap-12 lg:grid-cols-2"><SectionLabel align="left" eyebrow="Modules" title="The restaurant workflow from sales entry to payroll package." description="A single back-office operating layer for restaurant and food-service teams." /><div className="relative min-h-[500px] [perspective:1000px]"><motion.div className="absolute left-1/2 top-1/2 h-80 w-80 -translate-x-1/2 -translate-y-1/2 rounded-full bg-cyan-400/10 blur-3xl" animate={{ scale: [1, 1.3, 1], opacity: [0.4, 0.9, 0.4] }} transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }} />{Object.entries(modules).map(([key, item], index) => { const Icon = item.icon; return <motion.button key={key} onMouseEnter={() => setActive(key)} onClick={() => setActive(key)} className={cx("absolute w-64 rounded-[2rem] border p-5 text-left backdrop-blur-2xl [transform-style:preserve-3d]", active === key ? "border-cyan-300/30 bg-cyan-300/[0.10]" : "border-white/10 bg-slate-950/80")} style={{ left: index % 2 === 0 ? "6%" : "52%", top: `${8 + index * 21}%` }} animate={{ rotateY: active === key ? 0 : index % 2 === 0 ? -18 : 18, z: active === key ? 70 : -30, scale: active === key ? 1.05 : 0.94 }} transition={{ type: "spring", stiffness: 120, damping: 18 }}><div className="mb-5 flex items-center justify-between"><div className="grid h-11 w-11 place-items-center rounded-2xl bg-white/10 text-cyan-100 ring-1 ring-white/15"><Icon className="h-5 w-5" /></div><span className="rounded-full bg-white/10 px-3 py-1 text-xs font-black text-slate-200">{item.label}</span></div><h3 className="text-xl font-black text-white">{item.title}</h3><p className="mt-2 text-sm leading-6 text-slate-400">{item.copy}</p></motion.button>; })}<motion.div className="absolute left-1/2 top-1/2 w-72 -translate-x-1/2 -translate-y-1/2 rounded-[2rem] border border-white/10 bg-white/[0.06] p-4 backdrop-blur-2xl" animate={{ y: [0, -10, 0] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}><p className="mb-4 flex items-center gap-2 text-xs font-black uppercase tracking-[0.22em] text-cyan-200"><ActiveIcon className="h-4 w-4" /> {current.label}</p><AnimatePresence mode="wait"><motion.div key={active} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.25 }} className="space-y-3">{current.items.map((item, index) => <motion.div key={item} initial={{ opacity: 0, x: -18 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: index * 0.06 }} className="flex items-center gap-3 rounded-2xl border border-white/10 bg-slate-950/70 p-3"><CheckCircle2 className="h-4 w-4 text-cyan-200" /><span className="text-sm font-bold text-slate-200">{item}</span></motion.div>)}</motion.div></AnimatePresence></motion.div></div></div></div></section>;
 }
 
 function AISection() {
-  const aiFeatures = [
-    { icon: Sparkles, title: "Manager and owner briefs", copy: "Generate plain-English readouts for store managers and ownership that summarize margin pressure, wins, risks, and recommended actions." },
-    { icon: Gauge, title: "Exception-first summaries", copy: "Surface what needs attention instead of making leaders hunt through every table, ledger, and location card." },
-    { icon: ShieldCheck, title: "Read-only by design", copy: "AI briefs explain visible operating data. They do not submit payroll, overwrite ledgers, or change financial records." },
+  const cards = [
+    { icon: Sparkles, title: "AI manager and owner briefs", description: "Generate plain-English readouts for store managers and ownership that summarize margin pressure, wins, risks, and recommended actions from the visible Live P&L cards." },
+    { icon: LineChart, title: "Variance explanations", description: "Turn prime cost, labor movement, purchase spikes, waste events, and sales changes into operator-friendly explanations." },
+    { icon: ClipboardCheck, title: "Next-action guidance", description: "Help managers decide whether to review vendor pricing, adjust labor mix, investigate waste, or follow up on location performance." },
   ];
-  return (
-    <section id="ai" className="section">
-      <div className="container aiGrid">
-        <div><div className="eyebrow"><span className="eyebrowDot" />AI layer</div><h2 className="sectionTitle">Brief the manager. Brief the owner. Protect the record.</h2><p className="sectionCopy">InHouseOS AI is designed to help managers and owners understand what is happening inside the business while there is still time to correct the period.</p></div>
-        <div className="aiCards">{aiFeatures.map(({ icon: Icon, title, copy }) => <div className="aiFeature" key={title}><span className="popIcon"><Icon className="icon" /></span><div><strong>{title}</strong><span>{copy}</span></div></div>)}</div>
-      </div>
-    </section>
-  );
+  return <section id="ai" className="relative overflow-hidden bg-slate-950 py-28 text-white"><div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(139,92,246,0.15),transparent_34%)]" /><div className="relative mx-auto max-w-7xl px-4 sm:px-6"><div className="grid items-center gap-12 lg:grid-cols-2"><SectionLabel align="left" eyebrow="AI" title="AI that turns restaurant data into owner-ready action." description="InHouseOS AI is designed to help managers and owners understand what is happening inside the business while there is still time to correct the period." /><motion.div initial={{ opacity: 0, y: 28 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-80px" }} transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }} className="relative overflow-hidden rounded-[2.5rem] border border-white/10 bg-white/[0.055] p-6 shadow-[0_50px_160px_rgba(0,0,0,0.35)] backdrop-blur-2xl"><div className="absolute -right-24 -top-24 h-72 w-72 rounded-full bg-violet-400/20 blur-3xl" /><div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-cyan-300/20 blur-3xl" /><div className="relative"><div className="mb-5 flex items-center justify-between"><div><p className="text-xs font-black uppercase tracking-[0.25em] text-cyan-300">AI Manager & Owner Brief</p><h3 className="mt-2 text-3xl font-black tracking-[-0.03em] text-white">Live P&L owner readout</h3></div><div className="grid h-12 w-12 place-items-center rounded-2xl bg-cyan-300/10 ring-1 ring-cyan-300/20"><Sparkles className="h-6 w-6 text-cyan-100" /></div></div><div className="space-y-3">{[["Summary", "Revenue is healthy, but prime cost is moving above target and should be reviewed before close."], ["Wins", "Sales velocity is strong and location-level contribution is improving week over week."], ["Risks", "Purchasing and controllable waste are creating margin pressure against the current target."], ["Actions", "Review vendor pricing, labor mix, and top waste reasons today to recover margin before period close."]].map(([label, copy]) => <div key={label} className="rounded-2xl border border-white/10 bg-slate-950/60 p-4"><p className="text-xs font-black uppercase tracking-[0.22em] text-cyan-200">{label}</p><p className="mt-2 text-sm leading-7 text-slate-300">{copy}</p></div>)}</div></div></motion.div></div><div className="mt-14 grid gap-4 md:grid-cols-3">{cards.map((card, index) => <FeatureCard key={card.title} {...card} index={index} />)}</div></div></section>;
+}
+
+function Workflow() {
+  const steps = [
+    { title: "Enter daily sales", copy: "Capture food, beverage, other sales, comps, discounts, refunds, and net sales by location." },
+    { title: "Post purchases", copy: "Enter invoices and vendor spend so cost of goods is current throughout the week." },
+    { title: "Review labor and waste", copy: "Connect payroll readiness and controllable loss to margin pressure before close." },
+    { title: "Generate Live P&L", copy: "Give owners and managers a live operating statement with alerts, risks, and next actions." },
+  ];
+  return <section id="workflow" className="relative overflow-hidden bg-slate-950 py-28 text-white"><div className="absolute inset-x-0 top-1/2 h-px bg-gradient-to-r from-transparent via-cyan-300/30 to-transparent" /><div className="relative mx-auto max-w-7xl px-4 sm:px-6"><SectionLabel eyebrow="Workflow" title="From daily entry to operator-ready margin control." description="Cards emerge, move, connect, and resolve because that is how the restaurant back office actually runs: sales, purchasing, inventory, waste, labor, payroll, and P&L." /><div className="mt-16 grid gap-4 lg:grid-cols-4">{steps.map((step, index) => <motion.div key={step.title} initial={{ opacity: 0, y: 40, rotateX: 16 }} whileInView={{ opacity: 1, y: 0, rotateX: 0 }} viewport={{ once: true, margin: "-80px" }} transition={{ delay: index * 0.1, duration: 0.7, ease: [0.16, 1, 0.3, 1] }} className="relative rounded-[2rem] border border-white/10 bg-white/[0.045] p-6 backdrop-blur-xl"><div className="mb-8 flex items-center justify-between"><span className="grid h-11 w-11 place-items-center rounded-2xl bg-cyan-300/10 text-lg font-black text-cyan-100 ring-1 ring-cyan-300/20">{index + 1}</span>{index < steps.length - 1 && <ArrowRight className="hidden h-5 w-5 text-slate-600 lg:block" />}</div><h3 className="text-xl font-black text-white">{step.title}</h3><p className="mt-3 text-sm leading-7 text-slate-400">{step.copy}</p></motion.div>)}</div></div></section>;
 }
 
 function Pricing() {
-  return (
-    <section id="pricing" className="section">
-      <div className="container">
-        <div className="headingGrid"><div><div className="eyebrow"><span className="eyebrowDot" />Pricing</div><h2 className="sectionTitle">Launching soon.</h2></div><p className="sectionCopy">Pricing is intentionally held until launch readiness. Use the inquiry form to join the early-access pipeline and define the implementation scope.</p></div>
-        <div className="pricingGrid">{pricing.map((plan, index) => <article key={plan.title} className={`priceCard ${index === 1 ? 'featured' : ''}`}><h3>{plan.title}</h3><p className="priceSub">{plan.copy}</p><div className="price">{plan.price}</div><a href="#contact" className={`btn ${index === 1 ? 'btnPrimary' : ''}`}>Request access</a><ul className="featureList">{plan.features.map((item) => <li key={item}><CheckCircle2 className="icon" />{item}</li>)}</ul></article>)}</div>
-      </div>
-    </section>
-  );
+  const plans = [
+    { name: "Starter", price: "Launching Soon", description: "For single-location restaurants moving beyond spreadsheets and disconnected reports.", features: ["Sales entry", "Purchasing", "Live P&L", "Manager brief"], highlight: false },
+    { name: "Group", price: "Launching Soon", description: "For multi-location operators managing food cost, labor, vendors, and inventory across locations.", features: ["Everything in Starter", "Inventory counts", "Waste tracking", "Payroll review", "Location performance"], highlight: true },
+    { name: "Enterprise", price: "Launching Soon", description: "For food-service companies standardizing operations, reporting, and back-office workflows.", features: ["Everything in Group", "Advanced permissions", "Custom workflows", "Implementation support"], highlight: false },
+  ];
+  return <section id="pricing" className="relative overflow-hidden bg-[#07111f] py-28 text-white"><div className="relative mx-auto max-w-7xl px-4 sm:px-6"><SectionLabel eyebrow="Pricing" title="Configured around your restaurant operating model." description="Start with a walkthrough, then scope the right modules, integrations, and rollout plan for your group." /><div className="mt-14 grid gap-4 lg:grid-cols-3">{plans.map((plan, index) => <motion.div key={plan.name} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: index * 0.1, duration: 0.65 }} className={cx("relative overflow-hidden rounded-[2rem] border p-6 backdrop-blur-xl", plan.highlight ? "border-cyan-300/30 bg-cyan-300/[0.08] shadow-[0_40px_140px_rgba(34,211,238,0.12)]" : "border-white/10 bg-white/[0.045]")}>{plan.highlight && <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-400" />}<h3 className="text-2xl font-black text-white">{plan.name}</h3><p className="mt-5 text-4xl font-black tracking-tight text-white">{plan.price}</p><p className="mt-4 min-h-16 text-sm leading-7 text-slate-400">{plan.description}</p><div className="mt-7 space-y-3">{plan.features.map((feature) => <div key={feature} className="flex items-center gap-3 text-sm font-semibold text-slate-200"><CheckCircle2 className="h-4 w-4 text-cyan-200" /> {feature}</div>)}</div><a href="#contact" className={cx("mt-8 inline-flex w-full items-center justify-center rounded-full px-5 py-3 text-sm font-black transition", plan.highlight ? "bg-white text-slate-950 hover:bg-cyan-100" : "border border-white/10 bg-white/5 text-white hover:bg-white/10")}>Start conversation</a></motion.div>)}</div></div></section>;
 }
 
-function Contact() {
+function ContactForm() {
   const [status, setStatus] = useState("");
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -213,39 +141,19 @@ function Contact() {
     form.reset();
     setStatus("Inquiry received. The CRM has captured it for follow-up.");
   }
-  return (
-    <section id="contact" className="section">
-      <div className="container contactGrid">
-        <div><div className="eyebrow"><span className="eyebrowDot" />Early access</div><h2 className="sectionTitle">Start the conversation.</h2><p className="sectionCopy">Tell us what kind of restaurant or food service operation you run. The CRM behind this form is ready for Supabase once you connect credentials.</p></div>
-        <form className="panel form" onSubmit={submit}>
-          <div className="fieldGrid"><label>Company<input className="input" name="company" required placeholder="Maple & Marrow Group" /></label><label>Contact<input className="input" name="contact" required placeholder="Jordan Vale" /></label></div>
-          <div className="fieldGrid"><label>Email<input className="input" type="email" name="email" required placeholder="jordan@example.com" /></label><label>Phone<input className="input" name="phone" placeholder="(555) 017-2481" /></label></div>
-          <div className="fieldGrid"><label>Locations<input className="input" name="locations" placeholder="4" /></label><label>Segment<select className="select" name="segment"><option>Restaurant group</option><option>Independent restaurant</option><option>Food service company</option><option>Catering / commissary</option><option>Other hospitality operator</option></select></label></div>
-          <label>What should InHouseOS help with?<textarea className="textarea" name="message" required placeholder="We need better visibility into purchasing, labor, waste, and P&L before month-end." /></label>
-          <button className="btn btnPrimary" type="submit">Submit inquiry <ArrowRight className="icon" /></button>
-          <div className="formStatus" role="status">{status}</div>
-        </form>
-      </div>
-    </section>
-  );
+  const inputClass = "w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-sm font-semibold text-white outline-none transition placeholder:text-slate-600 focus:border-cyan-300/50";
+  return <form onSubmit={submit} className="grid gap-3 text-left"><div className="grid gap-3 sm:grid-cols-2"><input name="company" required className={inputClass} placeholder="Company" /><input name="contact" required className={inputClass} placeholder="Your name" /></div><div className="grid gap-3 sm:grid-cols-2"><input name="email" required type="email" className={inputClass} placeholder="Email" /><input name="phone" className={inputClass} placeholder="Phone" /></div><div className="grid gap-3 sm:grid-cols-2"><input name="locations" className={inputClass} placeholder="Number of locations" /><select name="segment" className={inputClass} defaultValue="Restaurant group"><option>Restaurant group</option><option>Single restaurant</option><option>Food service operator</option><option>Hospitality group</option><option>Other</option></select></div><textarea name="message" required className={cx(inputClass, "min-h-32 resize-none")} placeholder="What back-office workflow do you want to fix first?" /><button type="submit" className="group relative inline-flex w-full items-center justify-center gap-2 overflow-hidden rounded-full bg-white px-6 py-3 text-sm font-semibold text-slate-950 shadow-[0_20px_80px_rgba(255,255,255,0.22)] transition hover:bg-slate-100">Submit inquiry <ArrowRight className="h-4 w-4" /></button>{status && <p className="rounded-2xl border border-emerald-300/20 bg-emerald-300/10 px-4 py-3 text-sm font-bold text-emerald-100">{status}</p>}</form>;
+}
+
+function CTA() {
+  return <section id="contact" className="relative overflow-hidden bg-slate-950 px-4 py-28 text-white sm:px-6"><div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(34,211,238,0.16),transparent_42%)]" /><motion.div initial={{ opacity: 0, y: 32 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }} className="relative mx-auto grid max-w-6xl gap-8 overflow-hidden rounded-[2.5rem] border border-white/10 bg-white/[0.055] p-8 shadow-[0_60px_180px_rgba(0,0,0,0.45)] backdrop-blur-2xl sm:p-10 lg:grid-cols-2"><div className="absolute -right-24 -top-24 h-72 w-72 rounded-full bg-cyan-300/20 blur-3xl" /><div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-violet-400/20 blur-3xl" /><div className="relative"><div className="mb-6"><Logo className="h-16 w-16" showText={false} /></div><h2 className="text-balance text-4xl font-black tracking-[-0.04em] sm:text-6xl">Bring the restaurant back office in-house.</h2><p className="mt-5 max-w-2xl text-base leading-8 text-slate-300">Tell us about your locations, current reporting stack, and the workflow that creates the most drag. Your inquiry will appear in the built-in admin CRM.</p><div className="mt-8 grid gap-3 text-sm text-slate-300"><div className="flex gap-3"><CheckCircle2 className="mt-0.5 h-4 w-4 text-cyan-200" /> Live P&L implementation planning</div><div className="flex gap-3"><CheckCircle2 className="mt-0.5 h-4 w-4 text-cyan-200" /> Sales, purchasing, inventory, waste, and labor workflow review</div><div className="flex gap-3"><CheckCircle2 className="mt-0.5 h-4 w-4 text-cyan-200" /> Backend-ready CRM path at /admin</div></div></div><div className="relative rounded-[2rem] border border-white/10 bg-slate-950/60 p-5"><ContactForm /></div></motion.div></section>;
 }
 
 function Footer() {
-  return <footer className="footer"><div className="container footerInner"><Logo /><div className="footerLinks"><a href="#modules">Modules</a><a href="#ai">AI Briefs</a><a href="#pricing">Pricing</a><a href="/admin">Admin</a></div></div></footer>;
+  return <footer className="border-t border-white/10 bg-slate-950 px-4 py-10 text-white sm:px-6"><div className="mx-auto flex max-w-7xl flex-col gap-6 md:flex-row md:items-center md:justify-between"><Logo /><div className="flex flex-wrap gap-4 text-sm font-semibold text-slate-400"><a href="#platform" className="hover:text-white">Platform</a><a href="#modules" className="hover:text-white">Modules</a><a href="#ai" className="hover:text-white">AI</a><a href="#workflow" className="hover:text-white">Workflow</a><a href="#pricing" className="hover:text-white">Pricing</a><a href="/admin" className="hover:text-white">Admin</a></div><p className="text-xs text-slate-600">© {new Date().getFullYear()} InHouseOS. Restaurant back-office OS.</p></div></footer>;
 }
 
 export default function HomePage() {
-  return (
-    <main className="siteShell">
-      <div className="noise" /><div className="orb orbOne" /><div className="orb orbTwo" /><div className="orb orbThree" />
-      <Header />
-      <Hero />
-      <Platform />
-      <Modules />
-      <AISection />
-      <Pricing />
-      <Contact />
-      <Footer />
-    </main>
-  );
+  const particles = useMemo(() => Array.from({ length: 26 }, (_, index) => ({ id: index, left: `${(index * 37) % 100}%`, top: `${(index * 53) % 100}%`, duration: 5 + (index % 8), delay: (index % 5) * 0.7, size: 2 + (index % 4) })), []);
+  return <main className="min-h-screen overflow-x-hidden bg-slate-950 font-sans selection:bg-cyan-300 selection:text-slate-950"><div className="pointer-events-none fixed inset-0 z-[1] overflow-hidden">{particles.map((particle) => <motion.span key={particle.id} className="absolute rounded-full bg-cyan-200/30" style={{ left: particle.left, top: particle.top, width: particle.size, height: particle.size }} animate={{ y: [-20, -120], opacity: [0, 0.8, 0] }} transition={{ duration: particle.duration, delay: particle.delay, repeat: Infinity, ease: "easeOut" }} />)}</div><div className="relative z-10"><Nav /><Hero /><Platform /><Modules /><AISection /><Workflow /><Pricing /><CTA /><Footer /></div></main>;
 }
