@@ -1,5 +1,8 @@
 import type { Inquiry, InquiryInput, InquiryStatus } from "./types";
 
+const SUPABASE_PROJECT_URL = "https://ukjicmeketabsieoyflm.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_6KbwEzUGNQUqWlsM5FyTqw_YI0ykQtC";
+
 const DEMO_INQUIRIES: Inquiry[] = [
   {
     id: "demo-1001",
@@ -30,15 +33,13 @@ const DEMO_INQUIRIES: Inquiry[] = [
 ];
 
 function supabaseConfig() {
-  const url = process.env.SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) return null;
-  return { url: url.replace(/\/$/, ""), key };
+  const url = (process.env.SUPABASE_URL || SUPABASE_PROJECT_URL).replace(/\/$/, "");
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || SUPABASE_PUBLISHABLE_KEY;
+  return { url, key, usingServiceRole: Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY) };
 }
 
 async function supabaseFetch(path: string, init: RequestInit = {}) {
   const config = supabaseConfig();
-  if (!config) return null;
 
   const response = await fetch(`${config.url}/rest/v1/${path}`, {
     ...init,
@@ -60,6 +61,29 @@ async function supabaseFetch(path: string, init: RequestInit = {}) {
   return response.json();
 }
 
+async function supabaseRpc(functionName: string, body: Record<string, unknown>) {
+  const config = supabaseConfig();
+
+  const response = await fetch(`${config.url}/rest/v1/rpc/${functionName}`, {
+    method: "POST",
+    headers: {
+      apikey: config.key,
+      Authorization: `Bearer ${config.key}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`Supabase RPC failed: ${response.status} ${text}`);
+  }
+
+  if (response.status === 204) return null;
+  return response.json();
+}
+
 export async function createInquiry(input: InquiryInput): Promise<Inquiry> {
   const payload: Omit<Inquiry, "id" | "created_at"> = {
     status: "New",
@@ -73,13 +97,29 @@ export async function createInquiry(input: InquiryInput): Promise<Inquiry> {
     note: input.note || null,
   };
 
-  const inserted = await supabaseFetch("inhouseos_inquiries", {
-    method: "POST",
-    headers: { Prefer: "return=representation" },
-    body: JSON.stringify(payload),
+  const config = supabaseConfig();
+
+  if (config.usingServiceRole) {
+    const inserted = await supabaseFetch("inhouseos_inquiries", {
+      method: "POST",
+      headers: { Prefer: "return=representation" },
+      body: JSON.stringify(payload),
+    });
+
+    if (Array.isArray(inserted) && inserted[0]) return inserted[0] as Inquiry;
+  }
+
+  const rpcInserted = await supabaseRpc("create_inhouseos_inquiry", {
+    company: payload.company,
+    contact: payload.contact,
+    email: payload.email,
+    phone: payload.phone,
+    locations: payload.locations,
+    segment: payload.segment,
+    message: payload.message,
   });
 
-  if (Array.isArray(inserted) && inserted[0]) return inserted[0] as Inquiry;
+  if (rpcInserted) return rpcInserted as Inquiry;
 
   return {
     id: `demo-${Date.now()}`,
@@ -89,17 +129,36 @@ export async function createInquiry(input: InquiryInput): Promise<Inquiry> {
 }
 
 export async function listInquiries(): Promise<Inquiry[]> {
-  const rows = await supabaseFetch("inhouseos_inquiries?select=*&order=created_at.desc");
+  const config = supabaseConfig();
+
+  if (config.usingServiceRole) {
+    const rows = await supabaseFetch("inhouseos_inquiries?select=*&order=created_at.desc");
+    if (Array.isArray(rows)) return rows as Inquiry[];
+  }
+
+  const rows = await supabaseRpc("list_inhouseos_inquiries", {});
   if (Array.isArray(rows)) return rows as Inquiry[];
   return DEMO_INQUIRIES;
 }
 
 export async function updateInquiry(id: string, updates: { status?: InquiryStatus; note?: string | null }) {
-  const rows = await supabaseFetch(`inhouseos_inquiries?id=eq.${encodeURIComponent(id)}`, {
-    method: "PATCH",
-    headers: { Prefer: "return=representation" },
-    body: JSON.stringify(updates),
+  const config = supabaseConfig();
+
+  if (config.usingServiceRole) {
+    const rows = await supabaseFetch(`inhouseos_inquiries?id=eq.${encodeURIComponent(id)}`, {
+      method: "PATCH",
+      headers: { Prefer: "return=representation" },
+      body: JSON.stringify(updates),
+    });
+    if (Array.isArray(rows) && rows[0]) return rows[0] as Inquiry;
+  }
+
+  const row = await supabaseRpc("update_inhouseos_inquiry", {
+    inquiry_id: id,
+    next_status: updates.status || null,
+    next_note: updates.note === undefined ? null : updates.note,
   });
-  if (Array.isArray(rows) && rows[0]) return rows[0] as Inquiry;
+
+  if (row) return row as Inquiry;
   return DEMO_INQUIRIES.find((lead) => lead.id === id) || null;
 }
