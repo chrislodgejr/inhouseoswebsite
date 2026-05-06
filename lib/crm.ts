@@ -61,8 +61,8 @@ async function supabaseFetch(path: string, init: RequestInit = {}) {
 }
 
 export async function createInquiry(input: InquiryInput): Promise<Inquiry> {
-  const payload = {
-    status: "New" satisfies InquiryStatus,
+  const payload: Omit<Inquiry, "id" | "created_at"> = {
+    status: "New",
     company: input.company,
     contact: input.contact,
     email: input.email,
