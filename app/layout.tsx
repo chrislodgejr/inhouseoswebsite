@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import SplashScreen from "./SplashScreen";
 import "./tailwind.css";
 import "./globals.css";
 import "./homepage-polish.css";
@@ -72,7 +73,10 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <SplashScreen />
+        {children}
+      </body>
     </html>
   );
 }
