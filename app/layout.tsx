@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./tailwind.css";
 import "./globals.css";
 import "./homepage-polish.css";
+import "./splash.css";
 
 function getSiteUrl() {
   const rawSiteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://inhouseos.com").trim();
