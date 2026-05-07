@@ -1,91 +1,184 @@
 /* InHouseOS entry splash screen.
-   Uses the existing logo asset and visually removes the dark background via screen blending.
-   The logo itself is not redesigned, recolored, or altered. */
+   The component renders /logo.png through canvas processing to remove the baked-in dark logo background before display. */
 
-body::before,
-body::after {
-  content: "";
+.splash-shell {
   position: fixed;
   inset: 0;
+  z-index: 2147483647;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
   pointer-events: none;
-  z-index: 99999;
-}
-
-body::before {
   background:
-    radial-gradient(circle at 50% 42%, rgba(34, 211, 238, 0.26), transparent 28%),
-    radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.16), transparent 48%),
-    linear-gradient(to right, rgba(34, 211, 238, 0.055) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(34, 211, 238, 0.035) 1px, transparent 1px),
+    radial-gradient(circle at 50% 42%, rgba(34, 211, 238, 0.34), transparent 30%),
+    radial-gradient(circle at 50% 52%, rgba(59, 130, 246, 0.22), transparent 52%),
+    radial-gradient(circle at 50% 50%, rgba(20, 184, 166, 0.08), transparent 64%),
     #020817;
-  background-size: auto, auto, 72px 72px, 72px 72px, auto;
-  animation: inhouse-splash-backdrop 2.85s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: splash-shell-out 5.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-body::after {
-  background-image: url("/logo.png");
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: min(72vw, 680px) auto;
-  mix-blend-mode: screen;
-  filter: drop-shadow(0 0 34px rgba(34, 211, 238, 0.38));
-  animation: inhouse-splash-logo 2.85s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+.splash-grid {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to right, rgba(34, 211, 238, 0.07) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(34, 211, 238, 0.05) 1px, transparent 1px);
+  background-size: 72px 72px;
+  opacity: 0.42;
+  mask-image: radial-gradient(ellipse at center, black, transparent 72%);
+  animation: splash-grid-drift 5.2s ease-in-out forwards;
 }
 
-@keyframes inhouse-splash-backdrop {
-  0% {
-    opacity: 1;
-    visibility: visible;
-    background-position: center, center, 0 0, 0 0, center;
-  }
-  18% {
-    opacity: 1;
-  }
-  72% {
-    opacity: 1;
-    visibility: visible;
-    background-position: center, center, 40px 40px, 40px 40px, center;
-  }
-  100% {
-    opacity: 0;
-    visibility: hidden;
-    background-position: center, center, 72px 72px, 72px 72px, center;
-  }
+.splash-ring {
+  position: absolute;
+  border-radius: 9999px;
+  border: 1px solid rgba(34, 211, 238, 0.14);
+  opacity: 0;
 }
 
-@keyframes inhouse-splash-logo {
-  0% {
-    opacity: 0;
-    visibility: visible;
-    transform: scale(0.82) translateY(18px);
-    filter: blur(14px) drop-shadow(0 0 0 rgba(34, 211, 238, 0));
-  }
-  24% {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-    filter: blur(0) drop-shadow(0 0 34px rgba(34, 211, 238, 0.36));
-  }
-  56% {
-    opacity: 1;
-    transform: scale(1.018) translateY(0);
-    filter: blur(0) drop-shadow(0 0 54px rgba(34, 211, 238, 0.52));
-  }
-  78% {
-    opacity: 1;
-    visibility: visible;
-    transform: scale(1.03) translateY(0);
-  }
-  100% {
-    opacity: 0;
-    visibility: hidden;
-    transform: scale(1.09) translateY(-10px);
-    filter: blur(10px) drop-shadow(0 0 70px rgba(34, 211, 238, 0.16));
-  }
+.splash-ring-one {
+  width: 34rem;
+  height: 34rem;
+  animation: splash-ring-one 4.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.splash-ring-two {
+  width: 22rem;
+  height: 22rem;
+  border-color: rgba(59, 130, 246, 0.14);
+  animation: splash-ring-two 4.3s 0.15s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.splash-logo-wrap {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  animation: splash-logo-wrap 5.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.splash-glow {
+  position: absolute;
+  width: min(48vw, 30rem);
+  height: min(48vw, 30rem);
+  border-radius: 9999px;
+  background: rgba(34, 211, 238, 0.2);
+  filter: blur(54px);
+  animation: splash-glow 2.2s ease-in-out infinite alternate;
+}
+
+.splash-logo {
+  position: relative;
+  width: min(78vw, 760px);
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 0 42px rgba(34, 211, 238, 0.46));
+  animation: splash-logo-in 5.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.splash-loader {
+  position: relative;
+  margin-top: 2rem;
+  width: 14rem;
+  height: 4px;
+  overflow: hidden;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.1);
+  opacity: 0;
+  animation: splash-loader-in 5.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.splash-loader span {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, #67e8f9, #5eead4, #38bdf8);
+  animation: splash-loader-fill 2.2s 0.75s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transform: translateX(-100%);
+}
+
+.splash-scan {
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 8rem;
+  background: linear-gradient(to bottom, rgba(34, 211, 238, 0.14), transparent);
+  transform: translateY(-9rem);
+  animation: splash-scan 4.5s 0.25s ease-in-out forwards;
+}
+
+@keyframes splash-shell-out {
+  0%, 82% { opacity: 1; visibility: visible; }
+  100% { opacity: 0; visibility: hidden; }
+}
+
+@keyframes splash-grid-drift {
+  0% { background-position: 0 0, 0 0; opacity: 0.25; }
+  35% { opacity: 0.5; }
+  100% { background-position: 96px 96px, 96px 96px; opacity: 0; }
+}
+
+@keyframes splash-logo-wrap {
+  0% { opacity: 0; transform: scale(0.84) translateY(24px); }
+  16% { opacity: 1; transform: scale(1) translateY(0); }
+  66% { opacity: 1; transform: scale(1.018) translateY(0); }
+  86% { opacity: 1; transform: scale(1.03) translateY(0); }
+  100% { opacity: 0; transform: scale(1.1) translateY(-12px); filter: blur(10px); }
+}
+
+@keyframes splash-logo-in {
+  0% { opacity: 0; filter: blur(16px) drop-shadow(0 0 0 rgba(34, 211, 238, 0)); }
+  18% { opacity: 1; filter: blur(0) drop-shadow(0 0 38px rgba(34, 211, 238, 0.42)); }
+  44% { filter: blur(0) drop-shadow(0 0 72px rgba(34, 211, 238, 0.58)); }
+  84% { opacity: 1; filter: blur(0) drop-shadow(0 0 50px rgba(34, 211, 238, 0.34)); }
+  100% { opacity: 0; filter: blur(12px) drop-shadow(0 0 70px rgba(34, 211, 238, 0.12)); }
+}
+
+@keyframes splash-glow {
+  from { transform: scale(0.88); opacity: 0.5; }
+  to { transform: scale(1.22); opacity: 0.9; }
+}
+
+@keyframes splash-loader-in {
+  0%, 12% { opacity: 0; transform: translateY(8px); }
+  22%, 84% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-4px); }
+}
+
+@keyframes splash-loader-fill {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(100%); }
+}
+
+@keyframes splash-ring-one {
+  0% { opacity: 0; transform: scale(0.58); }
+  28% { opacity: 0.55; }
+  100% { opacity: 0; transform: scale(1.45); }
+}
+
+@keyframes splash-ring-two {
+  0% { opacity: 0; transform: scale(0.45); }
+  32% { opacity: 0.42; }
+  100% { opacity: 0; transform: scale(1.6); }
+}
+
+@keyframes splash-scan {
+  0% { transform: translateY(-9rem); opacity: 0; }
+  16% { opacity: 1; }
+  76% { opacity: 0.65; }
+  100% { transform: translateY(110vh); opacity: 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  body::before,
-  body::after {
-    animation-duration: 0.9s;
+  .splash-shell,
+  .splash-grid,
+  .splash-ring,
+  .splash-logo-wrap,
+  .splash-logo,
+  .splash-loader,
+  .splash-loader span,
+  .splash-scan {
+    animation-duration: 1.4s;
   }
 }
